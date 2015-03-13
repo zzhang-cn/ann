@@ -1,5 +1,7 @@
 """
-NN
+Vanilla NN. 
+SGD: stochastic gradient descent
+BP: backpropagation
 """
 
 import numpy as np
