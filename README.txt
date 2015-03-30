@@ -5,3 +5,4 @@ Current method in the project includes:
    feedforward
    stochastic gradient descent
    backpropagation.
+2) Batch-Normalization.
