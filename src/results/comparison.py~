@@ -1,0 +1,19 @@
+import numpy as np
+import json
+import matplotlib.pyplot as plt
+
+with open("nn-vanilla-deep.json") as baseline_file:
+    data=json.load(baseline_file)
+accu_base=data['acuuracy_epoch']
+loss_base=data['crossEntropy_epoch']
+
+with open("nn-batchnorm-deep.json") as bn_file:
+    data=json.load(bn_file)
+accu_bn=data['accuracy_epoch']
+loss_bn=data['crossEntropy_epoch']
+
+diff=accu_bn-accu_base
+plt.figure(1)
+plt.plot(diff,'ro',diff,'b')
+plt.show()
+
