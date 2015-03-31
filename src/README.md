@@ -1,4 +1,4 @@
-** Batch Normalization and Baseline (Vanilla) Neural Net**
+**Batch Normalization and Baseline (Vanilla) Neural Net**
 References:
 [Ioffe & Szegedy, 2015](http://arxiv.org/abs/1502.03167)
 [Michael Neilsen's tutorial website](http://neuralnetworksanddeeplearning.com/)
