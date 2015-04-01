@@ -16,7 +16,7 @@ import numpy as np
 def sigmoid(x,beta=1.):
     lb=-100.
     ub=-lb
-    return 1./(1.+np.exp(-beta*np.clipper(x,lb,ub)))
+    return 1./(1.+np.exp(-beta*np.clip(x,lb,ub)))
 
 # ReLU.
 # Input: 1-d array x
@@ -38,7 +38,7 @@ def softmax(x,beta=1.):
 # Note: This function return negative values.
 
 def tanh(x,scale=1.,amp=1.):
-    return amp*np.tanh(x)
+    return amp*np.tanh(scale*x)
 
 aFn={"sigmoid":sigmoid,"relu":relu,"softmax":softmax,"tanh":tanh}
 
@@ -47,7 +47,7 @@ aFn={"sigmoid":sigmoid,"relu":relu,"softmax":softmax,"tanh":tanh}
 #
 
 def dsigmoid(x,beta=1):
-    return -beta*sigmoid(x,beta)*(1.-sigmoid(x,beta))
+    return beta*sigmoid(x,beta)*(1.-sigmoid(x,beta))
 
 def drelu(x,scale=1.):
     return (x>0).astype(float)*scale
@@ -70,14 +70,20 @@ daFn={"sigmoid":dsigmoid,"relu":drelu,"softmax":dsoftmax,"tanh":dtanh}
 # t has the same dimension as a.
 
 def crossEntropy(a,t):
+    a=np.array(a)
+    t=np.array(t)
     num_samples=len(a[:,0])
-    p=[x/np.sum(x) for x in a] # normalize output to [0,1]
+    p=np.array([x/np.sum(x) for x in a]) # normalize output to [0,1]
     return np.sum(-t*np.nan_to_num(np.log(p))-
                   (1-t)*np.nan_to_num(np.log(1.-p)))/num_samples
 
 def leastSquare(a,t):
+    a=np.array(a)
+    t=np.array(t)
     num_samples=len(a[:,0])
     return 0.5*np.sum((a-t)**2)/num_samples
+
+cFn={'crossEntropy':crossEntropy,'leastSquare':leastSquare}
 
 #---------------------------------------------------------------
 # Growth Rate Function at the last layer.
@@ -89,30 +95,30 @@ def leastSquare(a,t):
 # Input: 1-d array a and t
 # Output: 1-d array delta_L
 
-def sigEnt(a,t,batch_size):
-    return (a-t)/batch_size
+def sigEnt(a,y,t,batch_size,beta=1.):
+    return beta*(a-t)/batch_size
 
-def reluEnt(a,t,batch_size):
-    return drelu(a,scale=1.)*(a-t)*np.nan_to_num(1./(a*(1.-a)))/batch_size
+def reluEnt(a,y,t,batch_size):
+    return drelu(y,scale=1.)*(a-t)*np.nan_to_num(1./(a*(1.-a)))/batch_size
 
-def softEnt(a,t,batch_size):
+def softEnt(a,y,t,batch_size):
     return np.dot((a-t)*np.nan_to_num(1./(a*(1.-a))),
-                  dsoftmax(a,beta=1.))/batch_size
+                  dsoftmax(y,beta=1.))/batch_size
 
-def tanhEnt(a,t,batch_size):
-    return (a-t)*np.nan_to_num(1./a)*dtanh(a,amp=1.,scale=1.)/batch_size
+def tanhEnt(a,y,t,batch_size):
+    return (a-t)*np.nan_to_num(1./(a*(1.-a)))*dtanh(y,amp=1.,scale=1.)/batch_size
 
-def sigSquare(a,t,batch_size):
-    return (a-t)*dsigmoid(a,beta=1)/batch_size
+def sigSquare(a,y,t,batch_size):
+    return (a-t)*dsigmoid(y,beta=1)/batch_size
 
-def reluSquare(a,t,batch_size):
-    return (a-t)*drelu(a,scale=1.)/batch_size
+def reluSquare(a,y,t,batch_size):
+    return (a-t)*drelu(y,scale=1.)/batch_size
 
-def softSquare(a,t,batch_size):
-    return np.dot(a-t,dsoftmax(a,beta=1.))/batch_size
+def softSquare(a,y,t,batch_size):
+    return np.dot(a-t,dsoftmax(y,beta=1.))/batch_size
 
-def tanhSquare(a,t,batch_size):
-    return (a-t)*dtanh(a,amp=1.,scale=1.)/batch_size
+def tanhSquare(a,y,t,batch_size):
+    return (a-t)*dtanh(y,amp=1.,scale=1.)/batch_size
 
 grFn={('sigmoid','crossEntropy'):sigEnt,
       ('relu','crossEntropy'):reluEnt,
