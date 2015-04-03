@@ -22,3 +22,17 @@ I employed boostrap to compute the stats. The total amount of sub-sample batches
 complete epochs.
 
 Trained NN's parameters, setups, results are recorded in .json files.
+
+**Run the code**
+Code is written in python 2.7.9
+Numpy and Matplotlib are required to run the codes.
+To examine the BN algorithm, simply open a terminal and run
+```
+python batchnorm.py
+```
+To examine the Baseline algorithm, run
+```
+python vanilla.py
+```
+The pyplot generated img will be automatically saved as .png file, while the data,
+including network configuration and final results, will be saved as .json file.
