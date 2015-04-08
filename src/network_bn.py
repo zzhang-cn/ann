@@ -59,7 +59,9 @@ class bnN:
         # model_check is to keep track of NN's performance on every E epochs
         # It records accuracy, baseline cost (crossEntropy).
         self.model_check=[]
-        
+        self.xhats_inf=[]
+        self.ys_inf=[]
+        self.us_inf=[]
     #---------------------------------------------------------------------
     def sgd(self,inputs,outputs,test_input,test_labels,
             eval_timing=True,inf_check=False,check_freq=1):
@@ -218,19 +220,23 @@ class bnN:
 
     def inf_fwd(self,tests,gmean,gvar):
         eps=1.e-15
-        self.xhats[0]=(tests-gmean[0])/np.sqrt(gvar[0]+eps)
-        self.ys[0]=self.gammas[0]*self.xhats[0]+self.betas[0]
+        self.xhats_inf=[np.zeros((len(tests[:,0]),l)) for l in self.layers]
+        self.ys_inf=copy.deepcopy(self.xhats_inf)
+        self.us_inf=copy.deepcopy(self.xhats_inf)
+        
+        self.xhats_inf[0]=(tests-gmean[0])/np.sqrt(gvar[0]+eps)
+        self.ys_inf[0]=self.gammas[0]*self.xhats_inf[0]+self.betas[0]
         #self.us[0]=[self.actfn(y) for y in self.ys[0]]
-        self.us[0]=[y for y in self.ys[0]]
+        self.us_inf[0]=[y for y in self.ys_inf[0]]
         
         for l in np.arange(1,len(self.layers)):
             # wx is W*U, e.g. the weight multiply inputs
-            wu=np.dot(self.us[l-1],self.weights[l-1])
-            self.xhats[l]=(wu-gmean[l])/np.sqrt(gvar[l]+eps)
-            self.ys[l]=self.gammas[l]*self.xhats[l]+self.betas[l]
-            self.us[l]=[self.actfn(y) for y in self.ys[l]]
+            wu=np.dot(self.us_inf[l-1],self.weights[l-1])
+            self.xhats_inf[l]=(wu-gmean[l])/np.sqrt(gvar[l]+eps)
+            self.ys_inf[l]=self.gammas[l]*self.xhats_inf[l]+self.betas[l]
+            self.us_inf[l]=[self.actfn(y) for y in self.ys_inf[l]]
 
-        return self.us[-1]
+        return self.us_inf[-1]
 
     #---------------------------------------------
     # Normalize test data without population stats

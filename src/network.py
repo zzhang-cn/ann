@@ -34,7 +34,7 @@ class Vnn:
                 batch_data=rand_trdata[q*self.minibatch:(q+1)*self.minibatch]
                 batch_label=rand_trlabel[q*self.minibatch:(q+1)*self.minibatch]
                 self.batch_update(batch_data,batch_label)
-                num_of_batches=p*self.minibatch+q+1
+                num_of_batches=p*num_minibatch+q+1
                 if check and not(num_of_batches%check_freq):
                     accu,cost=self.pred(tests,labels)
                     self.accuracy.append(accu)
