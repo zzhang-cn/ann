@@ -22,7 +22,8 @@ I employed boostrap to compute the stats. The total amount of sub-sample batches
 complete epochs.
 
 Trained NN's parameters, setups, results are recorded in .json files.
----------------------------------------------------------------------
+
+
 Modifications:
 1) Accuracy check is commented out. Instead, the last Hidden layer and the 2nd-to-last Hidden layer
    are recorded in *.pickle* file.
@@ -36,7 +37,7 @@ Modifications:
    The *(bn_)corr_input.png* shows the evolution of correlation between the successive recorded input
    to a specific hidden layer neuron.
 
-   To run the code, make sure ** number of hidden layer >=2 **.
+   To run the code, make sure **number of hidden layer >=2**.
    ```
    python vanilla.py
    python batchnorm.py
