@@ -20,6 +20,7 @@ import numpy as np
 import copy
 import time
 import nn_functions as fn
+import cPickle as pkl
 
 #---------------------------------------------------------------------
 class bnN:
@@ -58,6 +59,9 @@ class bnN:
 
         # model_check is to keep track of NN's performance on every E epochs
         # It records accuracy, baseline cost (crossEntropy).
+        self.xhats_inf=[]
+        self.ys_inf=[]
+        self.us_inf=[]
         self.model_check=[]
         
     #---------------------------------------------------------------------
@@ -73,6 +77,10 @@ class bnN:
         # pop_trains is used to record the trained mini-batches. needed when computing
         # population stats - means and vars that feed to inference.
         pop_trains=[]
+
+        data={'epoch':self.epochs,'batch_per_epoch':num_minibatch,
+              'check_freq':check_freq}
+        
         for p in np.arange(self.epochs):
             if eval_timing:
                 tstart=time.clock()
@@ -95,16 +103,24 @@ class bnN:
                     # just using test data. For online testing, the receipt from the paper
                     # is followed.
                     # use population stats:
-                    test_results=self.inference(test_input,test_labels,
-                                                pop_mean,pop_var)
+                    # test_results=self.inference(test_input,test_labels,
+                    #                              pop_mean,pop_var)
                     # no population stats:
                     # test_results=self.inference(test_input,test_label)
-                    self.model_check.append(test_results)
+                    #self.model_check.append(test_results) 
+                    res=self.inf_fwd(test_input,pop_mean,pop_var)
+                    key='p'+str(p)+'q'+str(q)+'hl-1'
+                    data[key]=self.ys_inf[-2]
+                    key='p'+str(p)+'q'+str(q)+'hl-2'
+                    data[key]=self.ys_inf[-3]
 
             if eval_timing:
                 tend=time.clock()
                 print "Epoch {0} completed. Time:{1}".format(p,tend-tstart)
 
+        with open('bn-dist.pickle','wb') as fout_pickle:
+            pkl.dump(data,fout_pickle,protocol=-1)
+            
     #---------------------------------------------------------------------
     def batch_update(self,inputs,labels):
         self.feedforward(inputs)
@@ -218,19 +234,23 @@ class bnN:
 
     def inf_fwd(self,tests,gmean,gvar):
         eps=1.e-15
-        self.xhats[0]=(tests-gmean[0])/np.sqrt(gvar[0]+eps)
-        self.ys[0]=self.gammas[0]*self.xhats[0]+self.betas[0]
+        self.xhats_inf=[np.zeros((len(tests[:,0]),l)) for l in self.layers]
+        self.ys_inf=copy.deepcopy(self.xhats_inf)
+        self.us_inf=copy.deepcopy(self.xhats_inf)
+        
+        self.xhats_inf[0]=(tests-gmean[0])/np.sqrt(gvar[0]+eps)
+        self.ys_inf[0]=self.gammas[0]*self.xhats_inf[0]+self.betas[0]
         #self.us[0]=[self.actfn(y) for y in self.ys[0]]
-        self.us[0]=[y for y in self.ys[0]]
+        self.us_inf[0]=[y for y in self.ys_inf[0]]
         
         for l in np.arange(1,len(self.layers)):
             # wx is W*U, e.g. the weight multiply inputs
-            wu=np.dot(self.us[l-1],self.weights[l-1])
-            self.xhats[l]=(wu-gmean[l])/np.sqrt(gvar[l]+eps)
-            self.ys[l]=self.gammas[l]*self.xhats[l]+self.betas[l]
-            self.us[l]=[self.actfn(y) for y in self.ys[l]]
+            wu=np.dot(self.us_inf[l-1],self.weights[l-1])
+            self.xhats_inf[l]=(wu-gmean[l])/np.sqrt(gvar[l]+eps)
+            self.ys_inf[l]=self.gammas[l]*self.xhats_inf[l]+self.betas[l]
+            self.us_inf[l]=[self.actfn(y) for y in self.ys_inf[l]]
 
-        return self.us[-1]
+        return self.us_inf[-1]
 
     #---------------------------------------------
     # Normalize test data without population stats

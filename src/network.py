@@ -6,6 +6,7 @@ ActivationFn: Sigmoid
 
 import numpy as np
 import time
+import cPickle as pkl
 
 class Vnn:
     def __init__(self,layers,learnrate,minibatch,epoch):
@@ -25,6 +26,10 @@ class Vnn:
             print "Mini-batch can't be divided by total number of tasks."
             raise SystemExit
         inouts=zip(inputs,outputs)
+
+        data={'epoch':self.epoch,'batch_per_epoch':num_minibatch,
+              'check_freq':check_freq}
+        
         for p in np.arange(self.epoch):
             tstart=time.clock()
             np.random.shuffle(inouts)
@@ -34,14 +39,35 @@ class Vnn:
                 batch_data=rand_trdata[q*self.minibatch:(q+1)*self.minibatch]
                 batch_label=rand_trlabel[q*self.minibatch:(q+1)*self.minibatch]
                 self.batch_update(batch_data,batch_label)
-                num_of_batches=p*self.minibatch+q+1
-                if check and not(num_of_batches%check_freq):
-                    accu,cost=self.pred(tests,labels)
-                    self.accuracy.append(accu)
-                    self.cost.append(cost)
+                num_of_batches=p*num_minibatch+q+1
+                # if check and not(num_of_batches%check_freq):
+                #     accu,cost=self.pred(tests,labels)
+                #     self.accuracy.append(accu)
+                #     self.cost.append(cost)
+                # Check the distribution
+                # 1) between adjcent layers
+                # 2) between Normal Distri. and a random node in hidden layer.
+                if check and not(num_of_batches%check_freq) and len(self.layers)>=4:
+                    fwd_test=[self.feedforward(x) for x in tests]
+                    hidden_last_in=[h[-3] for h in fwd_test]
+                    hidden_2ndlast_in=[h[-4] for h in fwd_test]
+                    hidden_z_last_in=np.array([np.dot(self.weights[-2],x)+self.bias[-2]
+                                               for x in hidden_last_in])
+                    hidden_z_2ndlast_in=np.array([np.dot(self.weights[-3],x)+self.bias[-3]
+                                                  for x in hidden_2ndlast_in])
+                    key='p'+str(p)+'q'+str(q)+'hl-1'
+                    data[key]=hidden_z_last_in
+                    key='p'+str(p)+'q'+str(q)+'hl-2'
+                    data[key]=hidden_z_2ndlast_in
+
             tend=time.clock()
+            
             print "Epoch {0} completed. Time:{1}".format(p,tend-tstart)
-                
+
+        with open('vanilla-dist.pickle','wb') as fout_pickle:
+            pkl.dump(data,fout_pickle,protocol=-1)
+
+            
     def batch_update(self,inputs,outputs):
         nabla_w=[np.zeros(w.shape) for w in self.weights]
         nabla_b=[np.zeros(b.shape) for b in self.bias]
