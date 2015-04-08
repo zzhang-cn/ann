@@ -21,6 +21,7 @@ import copy
 import time
 import nn_functions as fn
 import cPickle as pkl
+import json
 
 #---------------------------------------------------------------------
 class bnN:
@@ -42,8 +43,11 @@ class bnN:
         self.deltaLFn=fn.grFn[(actFn,costFn)]
         
         # parameter initialization.
-        self.weights=[np.random.randn(x,y)/np.sqrt(x)
-                      for x,y in zip(self.layers[:-1],self.layers[1:])]
+        # self.weights=[np.random.randn(x,y)/np.sqrt(x)
+        #               for x,y in zip(self.layers[:-1],self.layers[1:])]
+        with open('weights.json','r') as fw:
+            data=json.load(fw)
+        self.weights=[np.array(x) for x in data['weights']]
         self.gammas=[np.random.randn(x) for x in layers]
         self.betas=[np.random.randn(x) for x in layers]
         self.gammas[0]=np.ones(layers[0])

@@ -2,7 +2,7 @@ import data_loader as dl
 import network as network
 import numpy as np
 # import matplotlib.pyplot as plt
-# import json
+import json
 
 if __name__=="__main__":
     t_img,t_label=dl.training_load()
@@ -16,7 +16,7 @@ if __name__=="__main__":
     
     numoftests=1000
     tests=zip(s_img,s_label)
-    np.random.shuffle(tests)
+    #np.random.shuffle(tests)
     s_in=np.array(zip(*tests[:numoftests])[0])
     s_la=np.array(zip(*tests[:numoftests])[1])
 
@@ -29,6 +29,11 @@ if __name__=="__main__":
     checks_per_epoch=numoftrains/batchsize/check_freq
     
     ann=network.Vnn(layers,learnrate,batchsize,epochs)
+    data={}
+    data['weights']=[x.tolist() for x in ann.weights]
+    with open('weights.json','w') as fw:
+        json.dump(data,fw)
+    
     ann.sgd(t_in,t_la,s_in,s_la,check=True,check_freq=check_freq)
     # accu=np.array(ann.accuracy)
     # cost=np.array(ann.cost)

@@ -22,18 +22,18 @@ if __name__=="__main__":
 
     numoftrains=10000
     trains=zip(t_img,t_label)
-    np.random.shuffle(trains)
+    #np.random.shuffle(trains)
     t_in=np.array(zip(*trains[:numoftrains])[0])
     t_la=np.array(zip(*trains[:numoftrains])[1])
 
     numoftests=1000
     tests=zip(s_img,s_label)
-    np.random.shuffle(tests)
+    #np.random.shuffle(tests)
     s_in=np.array(zip(*tests[:numoftests])[0])
     s_la=np.array(zip(*tests[:numoftests])[1])
 
     layers=[28*28,100,100,100,10]
-    learnrate=10.
+    learnrate=1.
     batchsize=50
     epochs=20
     check_freq=20
