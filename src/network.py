@@ -7,6 +7,7 @@ ActivationFn: Sigmoid
 import numpy as np
 import time
 import cPickle as pkl
+import json
 
 class Vnn:
     def __init__(self,layers,learnrate,minibatch,epoch):
@@ -14,8 +15,12 @@ class Vnn:
         self.learnrate=learnrate
         self.minibatch=minibatch
         self.epoch=epoch
-        self.weights=[np.random.randn(x,y)/np.sqrt(x+1)
-                      for x,y in zip(self.layers[:-1],self.layers[1:])]
+        # self.weights=[np.random.randn(x,y)/np.sqrt(x+1)
+        #               for x,y in zip(self.layers[:-1],self.layers[1:])]
+        with open('weights.json','r') as fw:
+            data=json.load(fw)
+        self.weights=[np.array(x) for x in data['weights']]
+        
         self.bias=[np.random.randn(x) for x in layers[1:]]
         self.accuracy=[]
         self.cost=[]
@@ -40,10 +45,10 @@ class Vnn:
                 batch_label=rand_trlabel[q*self.minibatch:(q+1)*self.minibatch]
                 self.batch_update(batch_data,batch_label)
                 num_of_batches=p*num_minibatch+q+1
-                # if check and not(num_of_batches%check_freq):
-                #     accu,cost=self.pred(tests,labels)
-                #     self.accuracy.append(accu)
-                #     self.cost.append(cost)
+                if check and not(num_of_batches%check_freq):
+                    accu,cost=self.pred(tests,labels)
+                    self.accuracy.append(accu)
+                    self.cost.append(cost)
                 # Check the distribution
                 # 1) between adjcent layers
                 # 2) between Normal Distri. and a random node in hidden layer.

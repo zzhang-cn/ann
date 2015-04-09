@@ -82,8 +82,10 @@ class bnN:
         # population stats - means and vars that feed to inference.
         pop_trains=[]
 
-        data={'epoch':self.epochs,'batch_per_epoch':num_minibatch,
-              'check_freq':check_freq}
+        # data={'epoch':self.epochs,'batch_per_epoch':num_minibatch,
+        #       'check_freq':check_freq}
+
+        data=[]
         
         for p in np.arange(self.epochs):
             if eval_timing:
@@ -102,7 +104,7 @@ class bnN:
                 num_batches=q+p*num_minibatch+1
 
                 if inf_check and (not num_batches%check_freq):
-                    pop_mean,pop_var=self.pop_stats(inputs,np.array(pop_trains),p,q)
+                    #pop_mean,pop_var=self.pop_stats(inputs,np.array(pop_trains),p,q)
                     # when there is more than 1 test sample, one can normalize each layer
                     # just using test data. For online testing, the receipt from the paper
                     # is followed.
@@ -112,19 +114,23 @@ class bnN:
                     # no population stats:
                     # test_results=self.inference(test_input,test_label)
                     #self.model_check.append(test_results) 
-                    res=self.inf_fwd(test_input,pop_mean,pop_var)
-                    key='p'+str(p)+'q'+str(q)+'hl-1'
-                    data[key]=self.ys_inf[-2]
-                    key='p'+str(p)+'q'+str(q)+'hl-2'
-                    data[key]=self.ys_inf[-3]
-
+                    # res=self.inf_fwd(test_input,pop_mean,pop_var)
+                    # key='p'+str(p)+'q'+str(q)+'hl-1'
+                    # data[key]=self.ys_inf[-2]
+                    # key='p'+str(p)+'q'+str(q)+'hl-2'
+                    # data[key]=self.ys_inf[-3]
+                    lrate_scale=[x/y for x,y in zip(self.gammas[1:-1],self.stds[1:-1])]
+                    data.append(lrate_scale)
+                    
             if eval_timing:
                 tend=time.clock()
                 print "Epoch {0} completed. Time:{1}".format(p,tend-tstart)
 
-        with open('bn-dist.pickle','wb') as fout_pickle:
-            pkl.dump(data,fout_pickle,protocol=-1)
-            
+        # with open('bn-dist.pickle','wb') as fout_pickle:
+        #     pkl.dump(data,fout_pickle,protocol=-1)
+
+        with open('lrate_adj.pickle','wb') as fout:
+            pkl.dump(data,fout,protocol=-1)
     #---------------------------------------------------------------------
     def batch_update(self,inputs,labels):
         self.feedforward(inputs)

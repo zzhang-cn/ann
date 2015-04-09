@@ -20,17 +20,30 @@ if __name__=="__main__":
     t_img,t_label=dl.training_load()
     s_img,s_label=dl.test_load()
 
-    numoftrains=10000
-    trains=zip(t_img,t_label)
-    #np.random.shuffle(trains)
-    t_in=np.array(zip(*trains[:numoftrains])[0])
-    t_la=np.array(zip(*trains[:numoftrains])[1])
+    with open('idx_file.json','r') as fin:
+        data_idx=json.load(fin)
 
-    numoftests=1000
-    tests=zip(s_img,s_label)
+    idx_train=np.array(data_idx['idx_train'])
+    idx_test=np.array(data_idx['idx_test'])
+
+    t_in=np.array(t_img[idx_train])
+    t_la=np.array(t_label[idx_train])
+    s_in=np.array(s_img[idx_test])
+    s_la=np.array(s_label[idx_test])
+
+    numoftrains=len(idx_train)
+    numoftests=len(idx_test)
+    #numoftrains=10000
+    #trains=zip(t_img,t_label)
+    #np.random.shuffle(trains)
+    # t_in=np.array(zip(*trains[:numoftrains])[0])
+    # t_la=np.array(zip(*trains[:numoftrains])[1])
+
+    #numoftests=1000
+    #tests=zip(s_img,s_label)
     #np.random.shuffle(tests)
-    s_in=np.array(zip(*tests[:numoftests])[0])
-    s_la=np.array(zip(*tests[:numoftests])[1])
+    # s_in=np.array(zip(*tests[:numoftests])[0])
+    # s_la=np.array(zip(*tests[:numoftests])[1])
 
     layers=[28*28,100,100,100,10]
     learnrate=1.
